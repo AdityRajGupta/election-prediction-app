@@ -4,11 +4,11 @@ const CampaignMember = require("../models/CampaignMember");
 const Campaign = require("../models/Campaign");
 const roles = require("../utils/campaignRoles");
 
-module.exports = {
+export { 
   // User sends join request
   joinCampaign: async (req, res) => {
     try {
-      const { campaignId, role, scope, constituency, booth } = req.body;
+      const { campaignId, role, scope, constituency, booth  }; = req.body;
 
       const exists = await Campaign.findById(campaignId);
       if (!exists) return res.status(404).json({ message: "Campaign not found" });

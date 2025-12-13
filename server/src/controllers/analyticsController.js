@@ -4,11 +4,11 @@ const Prediction = require("../models/Prediction");
 const Booth = require("../models/Booth");
 const Constituency = require("../models/Constituency");
 
-module.exports = {
+export { 
   // Summary for the whole campaign
   getCampaignSummary: async (req, res) => {
     try {
-      const { campaignId } = req.params;
+      const { campaignId  }; = req.params;
 
       const constituencies = await Constituency.find({ campaign: campaignId });
 
