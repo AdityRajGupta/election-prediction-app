@@ -1,6 +1,6 @@
 import express from "express";
 const router = express.Router();
-import campaignController from "../controllers/campaignController.js";
+import * as campaignController from "../controllers/campaignController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 
 // Existing routes
