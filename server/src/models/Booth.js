@@ -1,16 +1,15 @@
-// server/src/models/Booth.js
 import mongoose from "mongoose";
 
 const boothSchema = new mongoose.Schema(
   {
     boothNumber: { type: String, required: true },
-    name: { type: String },
+    name: { type: String, required: true },
     constituency: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Constituency",
       required: true,
     },
-    voterCount: { type: Number, default: 0 }, // for weighted aggregation
+    voterCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

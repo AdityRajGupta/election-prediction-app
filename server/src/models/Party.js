@@ -1,4 +1,3 @@
-// server/src/models/Party.js
 import mongoose from "mongoose";
 
 const partySchema = new mongoose.Schema(

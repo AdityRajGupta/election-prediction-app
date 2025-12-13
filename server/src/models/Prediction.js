@@ -1,4 +1,3 @@
-// server/src/models/Prediction.js
 import mongoose from "mongoose";
 
 const predictionSchema = new mongoose.Schema(
@@ -8,22 +7,21 @@ const predictionSchema = new mongoose.Schema(
       ref: "Booth",
       required: true,
     },
-    user: {
+    party: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Party",
+      required: true,
+    },
+    predictedVotes: { type: Number, required: true },
+    actualVotes: { type: Number, default: 0 },
+    notes: { type: String },
+    submittedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    turnoutPercentage: { type: Number, min: 0, max: 100, required: true },
-    data: {
-      type: Map,
-      of: Number, // partyShortName -> percentage
-      required: true,
-    },
-    confidenceLevel: { type: Number, min: 1, max: 5, required: true },
   },
   { timestamps: true }
 );
-
-predictionSchema.index({ booth: 1, user: 1 }, { unique: true });
 
 export default mongoose.model("Prediction", predictionSchema);

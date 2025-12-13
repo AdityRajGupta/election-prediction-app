@@ -1,80 +1,87 @@
-import User from "../models/User.js";
-import Constituency from "../models/Constituency.js";
-import Booth from "../models/Booth.js";
-import Prediction from "../models/Prediction.js";
+// server/src/controllers/analyticsController.js
 
-export const leaderConstituencySummaryMe = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id);
-    if (!user || user.role !== "LEADER") {
-      return res.status(403).json({ message: "Not a leader" });
-    }
+const Prediction = require("../models/Prediction");
+const Booth = require("../models/Booth");
+const Constituency = require("../models/Constituency");
 
-    const constituencyId = user.constituency;
-    const constituency = await Constituency.findById(constituencyId);
-    if (!constituency)
-      return res.status(404).json({ message: "Constituency not found" });
+module.exports = {
+  // Summary for the whole campaign
+  getCampaignSummary: async (req, res) => {
+    try {
+      const { campaignId } = req.params;
 
-    const booths = await Booth.find({ constituency: constituencyId });
-    const boothIds = booths.map((b) => b._id);
+      const constituencies = await Constituency.find({ campaign: campaignId });
 
-    const predictions = await Prediction.find({
-      booth: { $in: boothIds },
-    });
+      let totalBooths = 0;
+      let updatedBooths = 0;
 
-    const totalBooths = booths.length;
-    const boothsUpdatedSet = new Set(
-      predictions.map((p) => p.booth.toString())
-    );
-    const boothsUpdated = boothsUpdatedSet.size;
-    const updateProgress =
-      totalBooths === 0 ? 0 : (boothsUpdated / totalBooths) * 100;
+      for (let c of constituencies) {
+        const booths = await Booth.find({ constituency: c._id });
+        totalBooths += booths.length;
 
-    // Aggregate voteShare (simple version)
-    const voteShareRaw = {}; // party -> weighted votes
-    let totalVotes = 0;
-
-    predictions.forEach((p) => {
-      const booth = booths.find((b) => b._id.toString() === p.booth.toString());
-      const boothWeight = booth?.voterCount || 1;
-
-      const turnoutFactor = p.turnoutPercentage / 100;
-
-      for (const [party, pct] of p.data.entries()) {
-        const votes = turnoutFactor * (pct / 100) * boothWeight;
-        voteShareRaw[party] = (voteShareRaw[party] || 0) + votes;
-        totalVotes += votes;
+        const preds = await Prediction.find({ booth: { $in: booths.map(b => b._id) } });
+        updatedBooths += preds.length;
       }
-    });
 
-    const voteShare = {};
-    let predictedWinner = null;
-    let maxVotes = -1;
+      const coverage = totalBooths
+        ? Math.round((updatedBooths / totalBooths) * 100)
+        : 0;
 
-    for (const party in voteShareRaw) {
-      const share =
-        totalVotes === 0 ? 0 : (voteShareRaw[party] / totalVotes) * 100;
-      voteShare[party] = Number(share.toFixed(2));
-      if (voteShareRaw[party] > maxVotes) {
-        maxVotes = voteShareRaw[party];
-        predictedWinner = party;
-      }
+      res.json({
+        totalConstituencies: constituencies.length,
+        totalBooths,
+        updatedBooths,
+        coverage,
+      });
+    } catch (err) {
+      console.error("Campaign summary error:", err);
+      res.status(500).json({ message: "Server error" });
     }
+  },
 
-    res.json({
-      constituencyId,
-      name: constituency.name,
-      totalBooths,
-      boothsUpdated,
-      updateProgress: Number(updateProgress.toFixed(2)),
-      voteShare,
-      predictedWinner,
-      // you can add boothStrength, trendOverTime later
-      boothStrength: [],
-      trendOverTime: [],
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
+  // Constituency analytics
+  getConstituencySummary: async (req, res) => {
+    try {
+      const { constituencyId } = req.params;
+
+      const booths = await Booth.find({ constituency: constituencyId });
+      const boothIds = booths.map(b => b._id);
+
+      const predictions = await Prediction.find({ booth: { $in: boothIds } });
+
+      let updatedBooths = predictions.length;
+      let totalBooths = booths.length;
+
+      res.json({
+        totalBooths,
+        updatedBooths,
+        coverage: totalBooths ? Math.round((updatedBooths / totalBooths) * 100) : 0,
+        booths,
+        predictions
+      });
+    } catch (err) {
+      console.error("Constituency summary error:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  },
+
+  // Booth-level analytics (prediction detail)
+  getBoothSummary: async (req, res) => {
+    try {
+      const { boothId } = req.params;
+
+      const booth = await Booth.findById(boothId);
+      if (!booth) return res.status(404).json({ message: "Booth not found" });
+
+      const prediction = await Prediction.findOne({ booth: boothId });
+
+      res.json({
+        booth,
+        prediction,
+      });
+    } catch (err) {
+      console.error("Booth summary error:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  },
 };

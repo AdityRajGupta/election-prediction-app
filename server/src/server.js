@@ -12,6 +12,10 @@ import partyRoutes from "./routes/partyRoutes.js";
 import predictionRoutes from "./routes/predictionRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 
+// 👉 NEW IMPORTS
+import campaignRoutes from "./routes/campaignRoutes.js";
+import campaignMemberRoutes from "./routes/campaignMemberRoutes.js";
+
 dotenv.config();
 
 const app = express();
@@ -35,6 +39,10 @@ app.use("/api/booths", boothRoutes);
 app.use("/api/parties", partyRoutes);
 app.use("/api/predictions", predictionRoutes);
 app.use("/api/analytics", analyticsRoutes);
+
+// 👉 NEW ROUTES (PLACE THEM HERE)
+app.use("/api/campaigns", campaignRoutes);
+app.use("/api/campaign-members", campaignMemberRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
