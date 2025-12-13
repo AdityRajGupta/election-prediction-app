@@ -1,36 +1,11 @@
-// server/src/routes/analyticsRoutes.js
-
 import express from "express";
 import authMiddleware from "../middleware/authMiddleware.js";
-import { allowRoles } from "../middleware/roleMiddleware.js";
-import {
-  leaderConstituencySummaryMe,
-  getCampaignSummary,
-  getConstituencySummary,
-  getBoothSummary,
-} from "../controllers/analyticsController.js";
+import * as analyticsController from "../controllers/analyticsController.js";
 
 const router = express.Router();
 
-// Require auth for all analytics routes
-router.use(authMiddleware);
-
-// ----------------------------
-// OLD ROUTE (LEADER ANALYTICS)
-// ----------------------------
-router.get(
-  "/leader/constituency-summary/me",
-  allowRoles("LEADER"),
-  leaderConstituencySummaryMe
-);
-
-// ----------------------------
-// NEW ROUTES (CAMPAIGN ANALYTICS)
-// ----------------------------
-router.get("/campaign/:campaignId", getCampaignSummary);
-
-router.get("/constituency/:constituencyId", getConstituencySummary);
-
-router.get("/booth/:boothId", getBoothSummary);
+router.get("/campaign", authMiddleware, analyticsController.getCampaignSummary);
+router.get("/constituency/:constituencyId", authMiddleware, analyticsController.getConstituencySummary);
+router.get("/booth/:boothId", authMiddleware, analyticsController.getBoothSummary);
 
 export default router;

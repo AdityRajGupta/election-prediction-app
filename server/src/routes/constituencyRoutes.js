@@ -1,25 +1,13 @@
 import express from "express";
 import authMiddleware from "../middleware/authMiddleware.js";
-import { allowRoles } from "../middleware/roleMiddleware.js";
-import {
-  createConstituency,
-  listConstituencies,
-  getConstituency,
-  lockConstituency,
-  unlockConstituency,
-} from "../controllers/constituencyController.js";
+import * as constituencyController from "../controllers/constituencyController.js";
 
 const router = express.Router();
 
-router.use(authMiddleware);
-
-// everyone logged-in can view
-router.get("/", listConstituencies);
-router.get("/:id", getConstituency);
-
-// admin only for modifying
-router.post("/", allowRoles("ADMIN"), createConstituency);
-router.post("/:id/lock", allowRoles("ADMIN"), lockConstituency);
-router.post("/:id/unlock", allowRoles("ADMIN"), unlockConstituency);
+router.get("/", authMiddleware, constituencyController.getAllConstituencies);
+router.get("/:id", authMiddleware, constituencyController.getConstituencyById);
+router.post("/", authMiddleware, constituencyController.createConstituency);
+router.put("/:id", authMiddleware, constituencyController.updateConstituency);
+router.delete("/:id", authMiddleware, constituencyController.deleteConstituency);
 
 export default router;

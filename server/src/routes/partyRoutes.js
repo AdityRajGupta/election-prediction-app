@@ -1,13 +1,13 @@
 import express from "express";
 import authMiddleware from "../middleware/authMiddleware.js";
-import { allowRoles } from "../middleware/roleMiddleware.js";
-import { createParty, listParties } from "../controllers/partyController.js";
+import * as partyController from "../controllers/partyController.js";
 
 const router = express.Router();
 
-router.use(authMiddleware);
-
-router.get("/", listParties);
-router.post("/", allowRoles("ADMIN"), createParty);
+router.get("/", authMiddleware, partyController.getAllParties);
+router.get("/:id", authMiddleware, partyController.getPartyById);
+router.post("/", authMiddleware, partyController.createParty);
+router.put("/:id", authMiddleware, partyController.updateParty);
+router.delete("/:id", authMiddleware, partyController.deleteParty);
 
 export default router;
